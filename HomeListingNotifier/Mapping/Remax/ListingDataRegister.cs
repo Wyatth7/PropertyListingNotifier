@@ -20,6 +20,7 @@ public class ListingDataRegister : IGlobalRegister
                 Data = new
                 {
                     s.UniqueListingId,
+                    s.Upi,
                 }.ToJson()
             })
             .Map(d => d.Properties, s => new List<Property>

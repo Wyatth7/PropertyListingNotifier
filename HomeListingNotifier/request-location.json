@@ -1,6 +1,6 @@
 [
     {
-      "Name": "Name of Query",
+      "Name": "Your query name",
       "OutboundUrl": "https://listings-middleware.prod.udc-shared-prod.eng.remax.tech/v1/listings/country/",
       "RequestFilter": {
         "Country": "usa",

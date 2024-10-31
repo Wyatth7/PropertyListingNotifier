@@ -11,15 +11,6 @@ while (await timer.WaitForNextTickAsync())
     var data = await ListingHttpClient.GetFromQuery(queries);
 
     await ListingProcessor.Process(data);
-    
-    // var shortenedValues = data
-    //     .Select(l => new { UniqueListingsId = l.UniqueListingId, l.Location?.ListingAddressFull })
-    //     .DistinctBy(l => l.UniqueListingsId)
-    //     .ToArray();
-    //
-    // Console.WriteLine(shortenedValues.Length);
-    //
-    // Console.WriteLine($"Distinct values: {string.Join("\n,", shortenedValues.Select(l => $"{l.UniqueListingsId}:{l.ListingAddressFull}"))}");
 }
 
 Console.ReadLine();

@@ -10,5 +10,5 @@ public class PropertyType
     [MaxLength(500)]
     public string Name { get; set; } = string.Empty;
 
-    public Property? Property { get; set; }
+    public ICollection<Property> Property { get; set; } = new HashSet<Property>();
 }

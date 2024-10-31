@@ -10,5 +10,5 @@ public class RealEstateListingSite
     [MaxLength(500)]
     public string Name { get; set; } = string.Empty;
 
-    public Listing? Listing { get; set; }
+    public ICollection<Listing> Listing { get; set; } = new HashSet<Listing>();
 }

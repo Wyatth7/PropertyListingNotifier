@@ -24,8 +24,8 @@ public class PropertyConfiguration : IEntityTypeConfiguration<Property>
             .HasForeignKey(p => p.ListingOfficeId);
 
         builder.HasOne(p => p.PropertyType)
-            .WithOne(p => p.Property)
-            .HasForeignKey<Property>(p => p.PropertyTypeId)
+            .WithMany(p => p.Property)
+            .HasForeignKey(p => p.PropertyTypeId)
             .IsRequired();
 
         builder.HasOne(p => p.Resource)

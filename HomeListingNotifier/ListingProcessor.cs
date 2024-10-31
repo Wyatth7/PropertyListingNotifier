@@ -1,6 +1,6 @@
+using HomeListingNotifier.Extensions;
 using HomeListingNotifier.Model.Remax;
 using Mapster;
-using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Persistence;
 using Persistence.Entities;
@@ -17,14 +17,6 @@ public static class ListingProcessor
     public static async Task Process(ListingData[] listings)
     {
         await using var listingDbContext = new ListingDbContext();
-
-        /*
-         * Create processing class that:
-         *
-         * 1) Filters out all sent properties
-         * 2) Inserts all new properties into DB
-         * 3) Sends SMS messages with details on property info.
-         */
 
         await using var transaction = await listingDbContext.Database.BeginTransactionAsync();
         try
@@ -44,14 +36,17 @@ public static class ListingProcessor
                 .Adapt<Listing[]>()
                 .Where(l => l.Properties
                     .Select(p => p.PropertyTypeId)
-                    .Any(p => (PropertyType)p != PropertyType.Ignore));
+                    .Any(p => (PropertyType)p != PropertyType.Ignore))
+                .ToArray();
 
+            if (entities.Length == 0) return;
+            
             listingDbContext.Listings.AddRange(entities);
             await listingDbContext.SaveChangesAsync();
 
-            // send SMS with property details and title image. (maybe send messages before saving to DB?)
+            // await SendMessages(entities);
 
-            // log some meta-data related to the records sent & filtered out count
+            
 
             await transaction.CommitAsync();
         }
@@ -61,6 +56,31 @@ public static class ListingProcessor
             await transaction.RollbackAsync();
         } 
 
+    }
+
+    private static async Task SendMessages(Listing[] listings)
+    {
+        var sender = new TwilioSender();
+        if (listings.Length == 0)
+        {
+            await sender.Send("No new listing were found in the last search. " +
+                              "To expand the search, update the filter settings in the request-location.json file.");
+            return;
+        }
+        
+        // foreach (var listing in listings)
+        // {
+        //     var 
+        // }
+        
+        var listing = listings.First();
+        
+        if (listing.Properties.Count == 0) return;
+        var propertyDetails = listing.Properties.First().PropertyDetails!.GetPropertyDetailString();
+
+        var message = $"{listing.GetListingUrl()} {propertyDetails}";
+
+        await sender.Send(message);
     }
 
     private static void LogStats(ListingData[] listings)
