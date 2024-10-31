@@ -1,0 +1,22 @@
+[
+    {
+      "Name": "Name of Query",
+      "OutboundUrl": "https://listings-middleware.prod.udc-shared-prod.eng.remax.tech/v1/listings/country/",
+      "RequestFilter": {
+        "Country": "usa",
+        "Size": 24,
+        "SortKey": 1,
+        "PageNumber": 1,
+        "SortDirection": 1,
+        "City": "",
+        "State": "ca",
+        "UiTransactionType": "Sale",
+        "MinPrice": 225000,
+        "MaxPrice": 350000,
+        "UiPropertyType": "Single Family Home",
+        "MinSqft": 2000,
+        "MinYearBuilt": 1995
+      },
+      "Body": {}
+    }
+]
