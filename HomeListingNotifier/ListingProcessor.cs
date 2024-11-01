@@ -18,7 +18,6 @@ public static class ListingProcessor
     {
         await using var listingDbContext = new ListingDbContext();
 
-        await using var transaction = await listingDbContext.Database.BeginTransactionAsync();
         try
         {
             var uniqueListItems = listings
@@ -39,52 +38,49 @@ public static class ListingProcessor
                     .Any(p => (PropertyType)p != PropertyType.Ignore))
                 .ToArray();
 
+            var failedResults = await SendMessages(entities);
+            
+
+            // do not save failed results, attempt sending on one of the next checks.
+            entities = entities
+                .Where(l => !failedResults.Contains(l.ListingProviderId))
+                .ToArray();
+            
             if (entities.Length == 0) return;
             
             listingDbContext.Listings.AddRange(entities);
             await listingDbContext.SaveChangesAsync();
-
-            // await SendMessages(entities);
-
             
-
-            await transaction.CommitAsync();
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            await transaction.RollbackAsync();
         } 
-
     }
 
-    private static async Task SendMessages(Listing[] listings)
+    private static async Task<string[]> SendMessages(Listing[] listings)
     {
-        var sender = new TwilioSender();
         if (listings.Length == 0)
         {
-            await sender.Send("No new listing were found in the last search. " +
-                              "To expand the search, update the filter settings in the request-location.json file.");
-            return;
+            await TwilioSender.Send("No new listing were found in the last search. " +
+                                    "To expand the search, update the filter settings in the request-location.json file.");
+            return [];
         }
-        
-        // foreach (var listing in listings)
-        // {
-        //     var 
-        // }
-        
-        var listing = listings.First();
-        
-        if (listing.Properties.Count == 0) return;
-        var propertyDetails = listing.Properties.First().PropertyDetails!.GetPropertyDetailString();
 
-        var message = $"{listing.GetListingUrl()} {propertyDetails}";
+        var failedListingIds = new List<string>();
+        foreach (var listing in listings)
+        {
+            if (listing.Properties.Count == 0) return [];
+            var propertyDetails = listing.Properties.First().PropertyDetails!.GetPropertyDetailString();
 
-        await sender.Send(message);
-    }
+            var message = $"{listing.GetListingUrl()} {propertyDetails}";
 
-    private static void LogStats(ListingData[] listings)
-    {
-        
+            var result = await TwilioSender.Send(message);
+
+            if (!result)
+                failedListingIds.Add(listing.ListingProviderId);
+        }
+
+        return failedListingIds.ToArray();
     }
 }

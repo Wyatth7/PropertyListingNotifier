@@ -11,17 +11,31 @@ public class TwilioSender
     private const string HostNumber = "";
     private const string ToNumber = "";
     
-    public async Task Send(string message)
+    public static async Task<bool> Send(string message)
     {
-        TwilioClient.Init(AccountSid, AuthToken);
-
-        var options = new CreateMessageOptions(new PhoneNumber(ToNumber))
+        try
         {
-            From = new PhoneNumber(HostNumber),
-            Body = message
-        };
+            TwilioClient.Init(AccountSid, AuthToken);
 
-        var response = await MessageResource.CreateAsync(options);
-        Console.WriteLine(response.Body);
+            var options = new CreateMessageOptions(new PhoneNumber(ToNumber))
+            {
+                From = new PhoneNumber(HostNumber),
+                Body = message
+            };
+
+            var response = await MessageResource.CreateAsync(options);
+
+            if (response.ErrorMessage is null) return true;
+            
+            Console.WriteLine($"Twilio responded with an error while sending an SMS message. " +
+                              $"Code: {response.ErrorCode}, Error: {response.ErrorMessage}");
+
+            return false;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            return false;
+        }
     }
 }
